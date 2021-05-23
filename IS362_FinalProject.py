@@ -1,13 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
-
-
-
-# In[346]:
+# In[386]:
 
 
 import sys
@@ -19,6 +13,7 @@ from IPython.display import display, HTML
 import numpy as np
 import matplotlib as mpl
 import seaborn as sns
+from sklearn.metrics import accuracy_score, confusion_matrix, roc_curve, roc_auc_score, auc
 
 import requests
 import re
@@ -31,6 +26,10 @@ soup = BeautifulSoup(page.content, 'html.parser')
 # initialize list of lists
 list1 = soup.find_all("li")[27:82]
 list2 = soup.find_all("li")[20:26]
+
+
+# In[ ]:
+
 
 # clean up all the extracted text from the html markup and place into a list array
 when_to_book_chicago = list2[0].get_text(strip=True).replace('Chicago:Book within 2 months for 18% savings','within 2 months').replace("Average summer hotel rate:$292/night", " ")
@@ -152,6 +151,11 @@ when_to_book_tokyo = list1[52].get_text(strip=True).replace('Tokyo:Book 4-7 mont
 avg_summer_hotel_rate_tokyo = list1[52].get_text(strip=True).replace('Tokyo:Book 4-7 months out for 18% savings', ' ').replace("Average summer hotel rate:"," ")
 savings_tokyo = list1[52].get_text(strip=True).replace('Tokyo:Book 4-7 months out for 18% savings', '18%').replace("Average summer hotel rate:$139/night"," ")
 
+
+# In[387]:
+
+
+
 # place all the list data into each column 
 data = [
     ['Chicago', when_to_book_chicago, savings_chicago, avg_summer_hotel_rate_chicago],
@@ -190,20 +194,32 @@ df = pd.DataFrame(data, columns = ['City', 'When to Book', 'Savings %', 'Average
 df.to_csv('tripadvisor_data.csv', index=False, mode= 'w')
 df_csv = pd.read_csv('tripadvisor_data.csv')
 
-# Convert values into int
-df_csv['Average Summer Hotel Rate $'] = df_csv['Average Summer Hotel Rate $'].str.replace('/night', '').str.replace('$', '').astype(float)
-#df_csv['Average Summer Hotel Rate'] = df_csv['Average Summer Hotel Rate'].astype(float).map("${}".format)
-df_csv['Savings %'] = df_csv['Savings %'].str.replace('%', '').astype(float)
-#df_csv['Savings'] = df_csv['Savings'].astype(float).map("{}%".format)
-
-
 
 #df_csv.info()
+
+df_csv.head(50)
+
+
+# In[393]:
+
+
+df_csv = pd.read_csv('tripadvisor_data.csv')
+
+# Convert values into int
+df_csv['Average Summer Hotel Rate $'] = df_csv['Average Summer Hotel Rate $'].str.replace('/night', '').str.replace('$', '').astype(float)
+df_csv['Savings %'] = df_csv['Savings %'].str.replace('%', '').astype(float)
+
+
+# In[391]:
+
 
 # If we sort this data by the best possible savings, here are the 3 top locations to book:
 
 df_csv[['City', 'When to Book', 'Savings %', 'Average Summer Hotel Rate $']].sort_values('Savings %', ascending=False).head(3)
-# Next, let's average out all the booking time as the overall timeframe you should book to get the best possible deal
+
+
+# In[394]:
+
 
 
 # print dataframe.
@@ -214,33 +230,35 @@ df_csv.head(50)
 # list out columns 
 cols = ['City', 'When to Book', 'Savings %', 'Average Summer Hotel Rate $']
 
+
+# In[395]:
+
+
 # Let's take a look at best timeframes to book for countries in the EU
 df_csv.iloc[[4,6,11,17,18,20,22,25]]
+
+
+# In[396]:
+
 
 # The best time to book is within an 4-8 month timeframe for the best possible deal if planning 
 # for Summer vacation
 df_csv.iloc[[6,11,17,25]]
 
-# What is the average percentage of savings for this timeframe of 4-8 months? data.iloc[0:5, 5:8]
+
+# In[397]:
+
+
+# Next, let's average out all the booking time as the overall timeframe you should book to get the best possible deal
+# What is the average percentage of savings for this timeframe of 4-8 months? 
 savings_avg_eu = df_csv.iloc[[6,11,17,25], [2]].sum(axis=0) / len(cols)
 
-#df_csv.iloc[[6,11,17,25], [0,1,2,3,4]]
 
 print('Savings average for booking 4-8 months out')
 print(savings_avg_eu)
 
 
-df_csv.head(50)
-
-
-# In[373]:
-
-
-origins = {1: 'USA', 
-          2: 'Asia',
-          3: 'Europe'}
-
-df_csv['Origin'] = df_csv['Origin'].map(origins)
+# In[389]:
 
 
 df_csv['Origin'] = ['USA','USA','USA','Asia','Europe','Asia','Europe','South America','North America','Africa','Asia','Europe','Asia','Asia','Euroasia','Asia','Asia','Europe','Europe','Africa','Europe','Asia','Europe','Europe','North America','Europe','Asia','Australia','Asia',]
